@@ -1,75 +1,130 @@
 package controller;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-/*import fornecedor.Fornecedor;*/
-import fornecedor.Produto;
+import fornecedor.Fornecedor;
 import validator.Validator;
 
 public class ControllerProdutosDosFornecedores {
-	private HashMap<String, Produto> produtos;
+	private Map<String, Fornecedor> fornecedores;
 
-	public ControllerProdutosDosFornecedores(HashMap<String, Produto> produtos) {
-		this.produtos = new HashMap<>();
+	public ControllerProdutosDosFornecedores(Map<String, Fornecedor> fornecedores) {
+		this.fornecedores = fornecedores;
+
 	}
 
-	public Produto getProduto(String nome) {
-		return produtos.get(nome);
+	public boolean existeFornecedor(String fornecedor) {
+		return this.fornecedores.containsKey(fornecedor);
 	}
 
-/*	public String cadastraFornecedor(Fornecedor fornecedor, String nome, String descricao, double preco) {
-		if (existeProduto(nome) == false) {
-			Produto produto = new Produto(fornecedor, nome, descricao, preco);
-			ValidatorCliente.verificaStringNull(nome, "Erro no cadastro de produto: nome nao pode ser vazio ou nulo.");
-			ValidatorCliente.verificaStringVazia(nome, "Erro no cadastro de produto: nome nao pode ser vazio ou nulo.");
-			ValidatorCliente.verificaStringNull(descricao,
-					"Erro no cadastro de produto: descricao nao pode ser vazia ou nula.");
-			ValidatorCliente.verificaStringVazia(descricao,
-					"Erro no cadastro de produto: descricao nao pode ser vazia ou nula.");
-			ValidatorCliente.verificaStringNull(preco, "Erro no cadastro de produto: preco invalido.");
-			ValidatorCliente.verificaStringVazia(preco,
-					"Erro no cadastro do fornecedor: telefone nao pode ser vazio ou nulo.");
-			this.produtos.put(nome, produto);
-			return produto.toStringNome();
+	public void cadastraProduto(String fornecedor, String nome, String descricao, double preco) {
+		Validator.verificaStringNull(fornecedor, "Erro no cadastro de produto: fornecedor nao pode ser vazio ou nulo.");
+		Validator.verificaStringVazia(fornecedor,
+				"Erro no cadastro de produto: fornecedor nao pode ser vazio ou nulo.");
+		if (existeFornecedor(fornecedor)) {
+			if (existeProduto(fornecedor, nome, descricao) == false) {
+				Validator.verificaStringNull(nome, "Erro no cadastro de produto: nome nao pode ser vazio ou nulo.");
+				Validator.verificaStringVazia(nome, "Erro no cadastro de produto: nome nao pode ser vazio ou nulo.");
+				Validator.verificaStringNull(descricao,
+						"Erro no cadastro de produto: descricao nao pode ser vazia ou nula.");
+				Validator.verificaStringVazia(descricao,
+						"Erro no cadastro de produto: descricao nao pode ser vazia ou nula.");
+				Validator.verificaDoubleValido(preco, "Erro no cadastro de produto: preco invalido.");
+				fornecedores.get(fornecedor).cadastraProduto(nome, descricao, preco);
+			} else {
+				throw new IllegalArgumentException("Erro no cadastro de produto: produto ja existe.");
+			}
 		} else {
-			return "Erro no cadastro de produto: produto ja existe.";
+			throw new IllegalArgumentException("Erro no cadastro de produto: fornecedor nao existe.");
 		}
-	}*/
-
-	public boolean existeProduto(String nome) {
-		return this.produtos.containsKey(nome);
 	}
 
-	public HashMap<String, Produto> getProdutos() {
-		return produtos;
+	public boolean existeProduto(String fornecedor, String nome, String descricao) {
+		if (existeFornecedor(fornecedor)) {
+			return this.fornecedores.get(fornecedor).existeProduto(nome, descricao);
+		}
+		return false;
 	}
 
-	public String exibeProduto(String nome) {
+	public String exibeProduto(String fornecedor, String nome, String descricao) {
+		Validator.verificaStringNull(fornecedor, "Erro na exibicao de produto: fornecedor nao pode ser vazio ou nulo.");
+		Validator.verificaStringVazia(fornecedor,
+				"Erro na exibicao de produto: fornecedor nao pode ser vazio ou nulo.");
 		Validator.verificaStringNull(nome, "Erro na exibicao de produto: nome nao pode ser vazio ou nulo.");
 		Validator.verificaStringVazia(nome, "Erro na exibicao de produto: nome nao pode ser vazio ou nulo.");
-		if (existeProduto(nome) == false) {
-			throw new IllegalArgumentException("Erro na exibicao de produto: produto nao existe.");
+		Validator.verificaStringNull(descricao, "Erro na exibicao de produto: descricao nao pode ser vazia ou nula.");
+		Validator.verificaStringVazia(descricao, "Erro na exibicao de produto: descricao nao pode ser vazia ou nula.");
+		if (existeFornecedor(fornecedor)) {
+			if (existeProduto(fornecedor, nome, descricao)) {
+				return this.fornecedores.get(fornecedor).exibeProduto(nome, descricao);
+			} else {
+				throw new IllegalArgumentException("Erro na exibicao de produto: produto nao existe.");
+			}
+		} else {
+			throw new IllegalArgumentException("Erro na exibicao de produto: fornecedor nao existe.");
 		}
-		return getProdutos().get(nome).toStringExibeProduto();
+
+	}
+	public String exibeProdutosFornecedor(String fornecedor) {
+		Validator.verificaStringNull(fornecedor, "Erro na exibicao de produto: fornecedor nao pode ser vazio ou nulo.");
+		Validator.verificaStringVazia(fornecedor,
+				"Erro na exibicao de produto: fornecedor nao pode ser vazio ou nulo.");
+		if (existeFornecedor(fornecedor)) {
+			return this.fornecedores.get(fornecedor).exibeProdutos();
+		}
+		throw new IllegalArgumentException("Erro na exibicao de produto: fornecedor nao existe.");
+	}
+
+	public String exibeTodosProdutos() {
+		List<Fornecedor> todosFornecedores = new ArrayList<Fornecedor>();
+		todosFornecedores.addAll(this.fornecedores.values());
+		Collections.sort(todosFornecedores);
+		String[] produtosToString = new String[this.fornecedores.size()];
+		for (int i = 0; i < this.fornecedores.size(); i++) {
+			produtosToString[i] = todosFornecedores.get(i).exibeProdutos();
+		}
+		return String.join(" | ", produtosToString);
 
 	}
 
-	public String removeProduto(String nome, String descricao, String fornecedor) {
+	public void editaProduto(String nome, String descricao, String fornecedor, double novoPreco) {
+		Validator.verificaStringNull(nome, "Erro na edicao de produto: nome nao pode ser vazio ou nulo.");
+		Validator.verificaStringVazia(nome, "Erro na edicao de produto: nome nao pode ser vazio ou nulo.");
+		Validator.verificaStringNull(descricao, "Erro na edicao de produto: descricao nao pode ser vazia ou nula.");
+		Validator.verificaStringVazia(descricao, "Erro na edicao de produto: descricao nao pode ser vazia ou nula.");
+		Validator.verificaStringNull(fornecedor, "Erro na edicao de produto: fornecedor nao pode ser vazio ou nulo.");
+		Validator.verificaStringVazia(fornecedor, "Erro na edicao de produto: fornecedor nao pode ser vazio ou nulo.");
+		Validator.verificaDoubleValido(novoPreco, "Erro na edicao de produto: preco invalido.");
+		if (existeFornecedor(fornecedor)) {
+			if (existeProduto(fornecedor, nome, descricao)) {
+				fornecedores.get(fornecedor).editaProduto(nome, descricao, novoPreco);
+			} else {
+				throw new IllegalArgumentException("Erro na edicao de produto: produto nao existe.");
+			}
+		} else {
+			throw new IllegalArgumentException("Erro na edicao de produto: fornecedor nao existe.");
+		}
+	}
+
+	public void removeProduto(String nome, String descricao, String fornecedor) {
 		Validator.verificaStringNull(nome, "Erro na remocao de produto: nome nao pode ser vazio ou nulo.");
 		Validator.verificaStringVazia(nome, "Erro na remocao de produto: nome nao pode ser vazio ou nulo.");
-		Validator.verificaStringNull(descricao,
-				"Erro na remocao de produto: descricao nao pode ser vazia ou nula.");
-		Validator.verificaStringVazia(descricao,
-				"Erro na remocao de produto: descricao nao pode ser vazia ou nula.");
-		Validator.verificaStringNull(fornecedor,
-				"Erro na remocao de produto: fornecedor nao pode ser vazio ou nulo.");
-		Validator.verificaStringVazia(fornecedor,
-				"Erro na remocao de produto: fornecedor nao pode ser vazio ou nulo.");
-		if (existeProduto(nome) == false) {
-			throw new IllegalArgumentException("Erro na remocao de produto: produto nao existe.");
+		Validator.verificaStringNull(descricao, "Erro na remocao de produto: descricao nao pode ser vazia ou nula.");
+		Validator.verificaStringVazia(descricao, "Erro na remocao de produto: descricao nao pode ser vazia ou nula.");
+		Validator.verificaStringNull(fornecedor, "Erro na remocao de produto: fornecedor nao pode ser vazio ou nulo.");
+		Validator.verificaStringVazia(fornecedor, "Erro na remocao de produto: fornecedor nao pode ser vazio ou nulo.");
+		if (existeFornecedor(fornecedor)) {
+			if (existeProduto(fornecedor, nome, descricao)) {
+				fornecedores.get(fornecedor).removeProduto(nome, descricao);
+			} else {
+				throw new IllegalArgumentException("Erro na remocao de produto: produto nao existe.");
+			}
+		} else {
+			throw new IllegalArgumentException("Erro na remocao de produto: fornecedor nao existe.");
 		}
-		produtos.remove(nome);
-		return nome;
 	}
 
 }
